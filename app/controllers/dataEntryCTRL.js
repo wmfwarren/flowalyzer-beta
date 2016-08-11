@@ -12,7 +12,7 @@ app.controller("dataEntryCTRL", function ($scope, $route, dataFactory, metaphone
 		rawObject.lineBreaker();
 		rawObject.wordBreaker();
 		console.log(rawObject, "rawObject");
-		metaphoneObject.metaphoner(rawObject.rawInput);
+		metaphoneObject.metaphoner(rawObject.rawFlowByWord);
 		console.log("metaphoned obj", metaphoneObject);
 	};
 })

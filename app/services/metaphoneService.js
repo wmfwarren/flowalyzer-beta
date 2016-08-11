@@ -37,37 +37,47 @@ app.service("metaphoneService", function(){
 		this.cleanedMP = null; //the punctuation free metaphoned version of the flow
 		this.singleStringMP = null; //Spaces removed to sort by character
 		this.byLineMP = null; //the line by line breakdown of the flow
-		this.byWordMP = null; // the by word breakdown 2D array
+		this.byWordMP = []; // the by word breakdown 2D array
 		//methods
 			//metaphone converter
-		this.metaphoner = function(flow){
-			flow = flow.replace(/\n/, " \n "); //prep for step 2, 3
-			//1. drop double letters to single except c
-			flow = flow.replace(/[^\w\s]|([bdfghjklmnpqrstvwxyzaeiou])(?=\1)/g, "");
-			//2. If the word begins with 'KN', 'GN', 'PN', 'AE', 'WR', drop the first letter
-			flow = flow.replace(/ kn/g, " n");
-			flow = flow.replace(/ gn/g, " n");
-			flow = flow.replace(/ pn/g, " n");
-			flow = flow.replace(/ ae/g, " e");
-			flow = flow.replace(/ wr/g, " r");
-			//3. Drop 'B' if after 'M' at the end of the word.
-			flow = flow.replace(/mb/, "m"); //need to fix
-			//4. 'C' transforms to 'X' if followed by 'IA' or 'H' (unless in latter case, it is part of '-SCH-', in which case it transforms to 'K').
-		  //'C' transforms to 'S' if followed by 'I', 'E', or 'Y'. Otherwise, 'C' transforms to 'K'.
-		  flow = flow.replace(/sch/g, "skh");
-			flow = flow.replace(/cia/g, "xia");
-			flow = flow.replace(/ch/g, "xh");
-			flow = flow.replace(/ci/g, "si");
-			flow = flow.replace(/ce/g, "se");
-			flow = flow.replace(/cy/g, "sy");
-			flow = flow.replace(/c/g, "k");
-			//5. 'D' transforms to 'J' if followed by 'GE', 'GY', or 'GI'. Otherwise, 'D' transforms to 'T'.
-			flow = flow.replace(/dge/g, "j");
-			flow = flow.replace(/dgy/g, "j");
-			flow = flow.replace(/dgi/g, "j");
-			flow = flow.replace(/d/g, "t");
-			//6. 
-			this.cleanedMP = flow;
+		this.metaphoner = function(flow){ //word for word flow
+			this.byWordMP = flow;
+			console.log("this.byWordMP", this.byWordMP );
+		 	for(let i = 0 ; i < flow.length ; i++){
+		 		for(let j = 0 ; i < flow[i].length ; j++){
+		 			let currentWord = this.byWordMP[i][j];
+		 			currentWord = currentWord.replace(/\n/, " \n "); //prep for step 2, 3
+					//1. drop double letters to single except c
+					currentWord = currentWord.replace(/[^\w\s]|([bdfghjklmnpqrstvwxyzaeiou])(?=\1)/g, "");
+					//2. If the word begins with 'KN', 'GN', 'PN', 'AE', 'WR', drop the first letter
+					currentWord = currentWord.replace(/^kn/g, "n");
+					currentWord = currentWord.replace(/^gn/g, "n");
+					currentWord = currentWord.replace(/^pn/g, "n");
+					currentWord = currentWord.replace(/^ae/g, "e");
+					currentWord = currentWord.replace(/^wr/g, "r");
+					//3. Drop 'B' if after 'M' at the end of the word.
+					currentWord = currentWord.replace(/mb$/, "m"); //need to fix since right not it wakes out in middle of a word too
+					//4. 'C' transforms to 'X' if followed by 'IA' or 'H' (unless in latter case, it is part of '-SCH-', in which case it transforms to 'K').
+				  //'C' transforms to 'S' if followed by 'I', 'E', or 'Y'. Otherwise, 'C' transforms to 'K'.
+				  currentWord = currentWord.replace(/sch/g, "skh");
+					currentWord = currentWord.replace(/cia/g, "xia");
+					currentWord = currentWord.replace(/ch/g, "xh");
+					currentWord = currentWord.replace(/ci/g, "si");
+					currentWord = currentWord.replace(/ce/g, "se");
+					currentWord = currentWord.replace(/cy/g, "sy");
+					currentWord = currentWord.replace(/c/g, "k");
+					//5. 'D' transforms to 'J' if followed by 'GE', 'GY', or 'GI'. Otherwise, 'D' transforms to 'T'.
+					currentWord = currentWord.replace(/dge/g, "j");
+					currentWord = currentWord.replace(/dgy/g, "j");
+					currentWord = currentWord.replace(/dgi/g, "j");
+					currentWord = currentWord.replace(/d/g, "t");
+					//6. Drop 'G' if followed by 'H' and 'H' is not at the end or before a vowel. 
+					//   Drop 'G' if followed by 'N' or 'NED' and is at the end.
+
+					//set the word back
+					this.byWordMP[i][j] = currentWord;
+					}
+				}
 		};
 			//stringifier
 			//line seperator
