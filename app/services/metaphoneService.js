@@ -15,14 +15,22 @@ app.service("metaphoneService", function(){
 		this.rawInput = null;
 		this.rawCleaned = null; //all punctuations removed
 		this.rawFlowByLine = null; //array of each line
-		this.rawFlowByWord = null; //2d array of words by line
+		this.rawFlowByWord = []; //2d array of words by line
 		//methods
 			//method to clean of punctuations
 		this.rawCleaner = function(){
-			this.rawCleaned = this.rawInput.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+			this.rawCleaned = this.rawInput.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase();
 		};
 			//method to break at line breaks
+		this.lineBreaker = function(){
+			this.rawFlowByLine = this.rawCleaned.split(/\n/);
+		};
 			//method to break at words
+		this.wordBreaker = function(){
+			for(let i = 0; i < this.rawFlowByLine.length; i++){
+				this.rawFlowByWord.push(this.rawFlowByLine[i].split(/ /));
+			}
+		}
 	};
 
 	this.MetaphonedFlow = function(){
