@@ -67,13 +67,39 @@ app.service("metaphoneService", function(){
 					currentWord = currentWord.replace(/cy/g, "sy");
 					currentWord = currentWord.replace(/c/g, "k");
 					//5. 'D' transforms to 'J' if followed by 'GE', 'GY', or 'GI'. Otherwise, 'D' transforms to 'T'.
-					currentWord = currentWord.replace(/dge/g, "j");
-					currentWord = currentWord.replace(/dgy/g, "j");
-					currentWord = currentWord.replace(/dgi/g, "j");
+					currentWord = currentWord.replace(/dge/g, "jge");
+					currentWord = currentWord.replace(/dgy/g, "jgy");
+					currentWord = currentWord.replace(/dgi/g, "jgi");
 					currentWord = currentWord.replace(/d/g, "t");
 					//6. Drop 'G' if followed by 'H' and 'H' is not at the end or before a vowel. 
 					//   Drop 'G' if followed by 'N' or 'NED' and is at the end.
-
+					if(currentWord.search(/gh/) !== -1 
+						&& currentWord.search(/gh/) !== currentWord.length - 2 
+						&& currentWord.search(/gh[aeiou]/) === -1){
+						let currentWordGHIndex = currentWord.search(/gh/);
+						currentWord = currentWord.slice(0, currentWordGHIndex) + currentWord.slice(currentWordGHIndex +1);
+					}	
+					if(currentWord.search(/gn/) !== -1
+						&& currentWord.search(/gn/) === currentWord.length - 2){
+						let currentWordGNIndex = currentWord.search(/gn/);
+						console.log("gn at", currentWordGNIndex);
+						currentWord = currentWord.slice(0, currentWordGNIndex) + currentWord.slice(currentWordGNIndex +1);
+					}
+					//searching for "gned" but ds are "t" nos at the end of words 
+					if(currentWord.search(/gnet/) !== -1 
+						&& currentWord.search(/gnet/) === currentWord.length - 4){
+						let currentWordGNEDIndex = currentWord.search(/gnet/);
+						console.log("gnet at", currentWordGNEDIndex);
+						currentWord = currentWord.slice(0, currentWordGNEDIndex) + currentWord.slice(currentWordGNEDIndex +1);
+					}
+					//7. 'G' transforms to 'J' if before 'I', 'E', or 'Y', and it is not in 'GG'. Otherwise, 'G' transforms to 'K'.
+						//"GG" will never show up because all double except cc were dropped step 1
+					currentWord.replace(/g/g, "k");
+					currentWord.replace(/gi/g, "ji");
+					currentWord.replace(/ge/g, "je");
+					currentWord.replace(/gy/g, "jy");
+					//8. Drop 'H' if after vowel and not before a vowel.
+					
 					//set the word back
 					this.byWordMP[i][j] = currentWord;
 					}
