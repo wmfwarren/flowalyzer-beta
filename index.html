@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>Flow Analyzer</title>
+	<link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link type="text/css" rel="stylesheet" href="lib/node_modules/materialize-css/dist/css/materialize.min.css"  media="screen,projection"/>
+	<link rel="stylesheet" href="css/main.css">
+</head>
+<body ng-app="flowAnalyzer">
+	<div ng-view></div>
+<!-- Third party script tags -->
+`<script src="lib/node_modules/angular/angular.min.js"></script>
+	<script src="lib/node_modules/angular-route/angular-route.min.js"></script>
+	<script src="lib/node_modules/firebase/firebase.js"></script>
+	<script src="lib/node_modules/jquery/dist/jquery.min.js"></script>
+	<script src="lib/node_modules/materialize-css/dist/js/materialize.min.js"></script>
+<!-- APP Script Tags -->
+	<script src="app/app.js"></script>
+<!-- Creds -->
+	<script src="app/values/firebaseVals.js"></script>
+<!-- Factories and Services -->
+	<script src="app/services/metaphoneService.js"></script>
+	<script src="app/factories/dataFactory.js"></script>
+	<script src="app/factories/authFactory.js"></script>
+<!-- COntrollers -->
+	<script src="app/controllers/dataEntryCTRL.js"></script>
+</body>
+</html>
