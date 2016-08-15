@@ -42,16 +42,31 @@ app.service("metaphoneService", function(){
 			//metaphone converter
 		this.metaphoner = function(flow){ //word for word flow
 			this.byWordMP = flow;
-			console.log("this.byWordMP", this.byWordMP );
 		 	for(let i = 0 ; i < flow.length ; i++){
-		 		for(let j = 0 ; i < flow[i].length ; j++){
+		 		for(let j = 0 ; j < flow[i].length ; j++){
 		 			let currentWord = this.byWordMP[i][j];
-		 			currentWord = currentWord.replace(/\n/, " \n "); //prep for step 2, 3
+		 			console.log("raw word?", this.byWordMP[i][j]);
+		 			//0. Alter dipthongs. 
+		 			currentWord = currentWord.replace(/ou/g, "1"); 
+		 			currentWord = currentWord.replace(/ie/g, "2"); 
+		 			currentWord = currentWord.replace(/igh/g, "2"); 
+		 			currentWord = currentWord.replace(/oi/g, "3"); 
+		 			currentWord = currentWord.replace(/oo/g, "4"); 
+		 			if(currentWord.search(/.air/) !== -1){
+		 				currentWord = currentWord.replace(/air/g, "5"); 
+		 			}
+		 			currentWord = currentWord.replace(/aire/g, "5"); 
+		 			if(currentWord.search(/.are/) !== -1){
+		 				currentWord = currentWord.replace(/are/g, "5"); 
+		 			}
+		 			currentWord = currentWord.replace(/ure/g, "6"); 
+
 					//1. drop double letters to single except c
 					currentWord = currentWord.replace(/[^\w\s]|([bdfghjklmnpqrstvwxyzaeiou])(?=\1)/g, "");
 					//2. If the word begins with 'KN', 'GN', 'PN', 'AE', 'WR', drop the first letter
 					currentWord = currentWord.replace(/^kn/g, "n");
 					currentWord = currentWord.replace(/^gn/g, "n");
+					currentWord = currentWord.replace(/^mn/g, "n"); //added to my version
 					currentWord = currentWord.replace(/^pn/g, "n");
 					currentWord = currentWord.replace(/^ae/g, "e");
 					currentWord = currentWord.replace(/^wr/g, "r");
@@ -90,16 +105,63 @@ app.service("metaphoneService", function(){
 						&& currentWord.search(/gnet/) === currentWord.length - 4){
 						let currentWordGNEDIndex = currentWord.search(/gnet/);
 						console.log("gnet at", currentWordGNEDIndex);
-						currentWord = currentWord.slice(0, currentWordGNEDIndex) + currentWord.slice(currentWordGNEDIndex +1);
+						currentWord = currentWord.slice(0, currentWordGNEDIndex) + currentWord.slice(currentWordGNEDIndex + 1);
 					}
 					//7. 'G' transforms to 'J' if before 'I', 'E', or 'Y', and it is not in 'GG'. Otherwise, 'G' transforms to 'K'.
 						//"GG" will never show up because all double except cc were dropped step 1
-					currentWord.replace(/g/g, "k");
-					currentWord.replace(/gi/g, "ji");
-					currentWord.replace(/ge/g, "je");
-					currentWord.replace(/gy/g, "jy");
+					currentWord = currentWord.replace(/g/g, "k");
+					currentWord = currentWord.replace(/gi/g, "ji");
+					currentWord = currentWord.replace(/ge/g, "je");
+					currentWord = currentWord.replace(/gy/g, "jy");
 					//8. Drop 'H' if after vowel and not before a vowel.
-					
+					if(currentWord.search(/[aeiou]h/) !== -1
+						&& currentWord.search(/[aeiou]h[aeiou]/) === -1){
+						let indexOfH = currentWord.search(/[aeiou]h/) + 1;
+						currentWord = currentWord.slice(0, indexOfH) + currentWord.slice(indexOfH + 1);
+					}
+					//9. replace CK with K
+					currentWord = currentWord.replace(/ck/g, "k");
+					//10. relace PH with F
+					currentWord = currentWord.replace(/ph/g, "f");
+					//11. QU > K
+					currentWord = currentWord.replace(/qu/g, "k");
+					//11.5 Q > K
+					currentWord = currentWord.replace(/q/g, "k");
+					//12. 'S' transforms to 'X' if followed by 'H', 'IO', or 'IA'.
+					currentWord = currentWord.replace(/sh/g, "xh");
+					currentWord = currentWord.replace(/sio/g, "xio");
+					currentWord = currentWord.replace(/sia/g, "xia");
+					//13. T' transforms to 'X' if followed by 'IA' or 'IO'. 
+					// 'TH' transforms to '0'. Drop 'T' if followed by 'CH'.
+					currentWord = currentWord.replace(/tio/g, "xio");
+					currentWord = currentWord.replace(/tia/g, "xia");
+					currentWord = currentWord.replace(/th/g, "0");
+					currentWord = currentWord.replace(/tch/g, "ch");
+					//14. V > F
+					currentWord = currentWord.replace(/v/g, "f");
+					//15. 'WH' transforms to 'W' if at the beginning. 
+					//Drop 'W' if not followed by a vowel.
+					currentWord = currentWord.replace(/wh/, "w");
+					if(currentWord.search(/w/) !== -1
+						&& currentWord.search(/w[aeiou]/) === -1){
+						let indexOfW = currentWord.search(/w/);
+						currentWord = currentWord.slice(0, indexOfW) + currentWord.slice(indexOfW + 1);
+					}
+					//16. 'X' transforms to 'S' if at the beginning. 
+					//Otherwise, 'X' transforms to 'KS'.
+					currentWord = currentWord.replace(/x/, "s");
+					currentWord = currentWord.replace(/x/g, "ks");
+					//17. Drop 'Y' if not followed by a vowel.
+					if(currentWord.search(/y/) !== -1
+						&& currentWord.search(/y[aeiou]/) === -1){
+						let indexOfY = currentWord.search(/y/);
+						currentWord = currentWord.slice(0, indexOfY) + currentWord.slice(indexOfY + 1);
+					}
+					//18. Z > S
+					currentWord = currentWord.replace(/z/g, "s");
+					//19. Cull non-leading vowels (This is for real metaphone ONLY)
+					//20. 
+
 					//set the word back
 					this.byWordMP[i][j] = currentWord;
 					}
