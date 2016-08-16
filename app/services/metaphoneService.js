@@ -35,9 +35,12 @@ app.service("metaphoneService", function(){
 
 	this.MetaphonedFlow = function(){
 		this.cleanedMP = null; //the punctuation free metaphoned version of the flow
+		this.noVowelCleanedMP = null;
 		this.singleStringMP = null; //Spaces removed to sort by character
-		this.byLineMP = null; //the line by line breakdown of the flow
+		this.byLineMP = []; //the line by line breakdown of the flow
 		this.byWordMP = []; // the by word breakdown 2D array
+		this.noVowelLineMP = [];
+		this.noVowelWordMP = [];
 		//methods
 			//metaphone converter
 		this.metaphoner = function(flow){ //word for word flow
@@ -45,10 +48,8 @@ app.service("metaphoneService", function(){
 		 	for(let i = 0 ; i < flow.length ; i++){
 		 		for(let j = 0 ; j < flow[i].length ; j++){
 		 			let currentWord = this.byWordMP[i][j];
-		 			console.log("raw word?", this.byWordMP[i][j]);
 		 			//0. Alter dipthongs. 
-		 			currentWord = currentWord.replace(/ou/g, "1"); 
-		 			currentWord = currentWord.replace(/ie/g, "2"); 
+		 			currentWord = currentWord.replace(/ou/g, "1");  
 		 			currentWord = currentWord.replace(/igh/g, "2"); 
 		 			currentWord = currentWord.replace(/oi/g, "3"); 
 		 			currentWord = currentWord.replace(/oo/g, "4"); 
@@ -60,13 +61,30 @@ app.service("metaphoneService", function(){
 		 				currentWord = currentWord.replace(/are/g, "5"); 
 		 			}
 		 			currentWord = currentWord.replace(/ure/g, "6"); 
-
+		 			//0.5 drop the second vowel in remaining double vowel combos
+		 			while(currentWord.search(/[aeiou][aeiou]/) !== -1){
+		 				let secondVowelIndex = currentWord.search(/[aeiou][aeiou]/) + 1;
+		 				currentWord = currentWord.slice(0, secondVowelIndex) + currentWord.slice(secondVowelIndex + 1);
+		 			}
+		 			//0.75 drop trailing silent e's
+		 			while(currentWord.search(/[aeiou].es/) !== -1){
+		 				if(currentWord.charAt(currentWord.length - 2) === 'e'){
+		 					currentWord = currentWord.slice(0, -2) + 's';
+		 				}
+		 			}
+		 			if(currentWord.search(/.e/) !== -1 
+		 				&& currentWord.length > 2){
+		 				if(currentWord.charAt(currentWord.length - 1) === 'e'){
+		 					currentWord = currentWord.slice(0, -1);
+		 				}
+		 			}
 					//1. drop double letters to single except c
 					currentWord = currentWord.replace(/[^\w\s]|([bdfghjklmnpqrstvwxyzaeiou])(?=\1)/g, "");
 					//2. If the word begins with 'KN', 'GN', 'PN', 'AE', 'WR', drop the first letter
 					currentWord = currentWord.replace(/^kn/g, "n");
 					currentWord = currentWord.replace(/^gn/g, "n");
 					currentWord = currentWord.replace(/^mn/g, "n"); //added to my version
+					currentWord = currentWord.replace(/^kh/g, "k"); //added to my version
 					currentWord = currentWord.replace(/^pn/g, "n");
 					currentWord = currentWord.replace(/^ae/g, "e");
 					currentWord = currentWord.replace(/^wr/g, "r");
@@ -121,11 +139,10 @@ app.service("metaphoneService", function(){
 					}
 					//9. replace CK with K
 					currentWord = currentWord.replace(/ck/g, "k");
+					currentWord = currentWord.replace(/kk/g, "k");
 					//10. relace PH with F
 					currentWord = currentWord.replace(/ph/g, "f");
-					//11. QU > K
-					currentWord = currentWord.replace(/qu/g, "k");
-					//11.5 Q > K
+					//11 Q > K
 					currentWord = currentWord.replace(/q/g, "k");
 					//12. 'S' transforms to 'X' if followed by 'H', 'IO', or 'IA'.
 					currentWord = currentWord.replace(/sh/g, "xh");
@@ -144,33 +161,75 @@ app.service("metaphoneService", function(){
 					currentWord = currentWord.replace(/wh/, "w");
 					if(currentWord.search(/w/) !== -1
 						&& currentWord.search(/w[aeiou]/) === -1){
-						let indexOfW = currentWord.search(/w/);
-						currentWord = currentWord.slice(0, indexOfW) + currentWord.slice(indexOfW + 1);
+							let indexOfW = currentWord.search(/w/);
+							currentWord = currentWord.slice(0, indexOfW) + currentWord.slice(indexOfW + 1);
 					}
 					//16. 'X' transforms to 'S' if at the beginning. 
 					//Otherwise, 'X' transforms to 'KS'.
 					currentWord = currentWord.replace(/x/, "s");
 					currentWord = currentWord.replace(/x/g, "ks");
 					//17. Drop 'Y' if not followed by a vowel.
-					if(currentWord.search(/y/) !== -1
-						&& currentWord.search(/y[aeiou]/) === -1){
+					//17. ADDITION: keep trailing Ys
+					while(currentWord.search(/y/) !== -1
+						&& currentWord.search(/y[aeiou]/) === -1
+						&& currentWord.search(/y/) !== currentWord.length -1){
 						let indexOfY = currentWord.search(/y/);
 						currentWord = currentWord.slice(0, indexOfY) + currentWord.slice(indexOfY + 1);
 					}
 					//18. Z > S
 					currentWord = currentWord.replace(/z/g, "s");
 					//19. Cull non-leading vowels (This is for real metaphone ONLY)
-					//20. 
+					//20. M > N
+					currentWord = currentWord.replace(/m/g, "n");
 
 					//set the word back
 					this.byWordMP[i][j] = currentWord;
 					}
 				}
+			this.metaByLineJoiner();
+			this.metaByFlowJoiner();
+			this.metaString();
+			this.vowelCull();
+			this.metaByLineJoinerNoVowels();
+			this.metaByFlowJoinerNoVowels();
 		};
 			//stringifier
-			//line seperator
-			//word seperator
-			//string matcher for 2,3,4,5,6 char strings at 20,40,60 characters ahead
-	};
 
+		this.metaByLineJoiner = function(){
+			for(let i = 0; i < this.byWordMP.length; i++){
+				this.byLineMP.push(this.byWordMP[i].join(" "));
+			}
+		};
+		this.metaByFlowJoiner = function(){
+			this.cleanedMP = this.byLineMP.join("\n");
+		};
+		this.metaString = function(){
+			this.singleStringMP = this.cleanedMP.replace(/\s/g, "");
+		}
+		//getting rid of vowels
+		this.vowelCull = function(){
+			for(let i = 0 ; i < this.byWordMP.length ; i++){
+		 		let currentLine =[]
+		 		for(let j = 0 ; j < this.byWordMP[i].length ; j++){
+		 			let currentWord = this.byWordMP[i][j];
+		 			let leadingChar = currentWord.charAt(0);
+		 			let endOfString = currentWord.substring(1);
+		 			let vowelless = endOfString.replace(/[aeiou123456]/g, "");
+		 			currentWord = leadingChar + vowelless;
+		 			currentLine.push(currentWord);
+		 			// this.noVowelWordMP[i][j] = currentWord;
+		 		}
+		 		this.noVowelWordMP.push(currentLine);
+		 	}
+		};
+		this.metaByLineJoinerNoVowels = function(){
+			for(let i = 0; i < this.noVowelWordMP.length; i++){
+				this.noVowelLineMP.push(this.noVowelWordMP[i].join(" "));
+			}
+		};
+		this.metaByFlowJoinerNoVowels = function(){
+			this.noVowelCleanedMP = this.noVowelLineMP.join("\n");
+		};
+
+	};
 })

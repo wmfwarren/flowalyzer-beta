@@ -1,9 +1,10 @@
 "use strict";
 
-app.controller("dataEntryCTRL", function ($scope, $route, dataFactory, metaphoneService) {
+app.controller("dataEntryCTRL", function ($scope, $route, dataFactory, metaphoneService, flowalyzer) {
 	$scope.flowInput = null;
-	var rawObject = new metaphoneService.RawFlow();
-	var metaphoneObject = new metaphoneService.MetaphonedFlow();
+	const rawObject = new metaphoneService.RawFlow();
+	const metaphoneObject = new metaphoneService.MetaphonedFlow();
+	const rhymeMatrixObject = new flowalyzer.RhymeMatrix();
 
 	$scope.input = function (){
 		console.log("Flow to Check", $scope.flowInput);
@@ -14,5 +15,8 @@ app.controller("dataEntryCTRL", function ($scope, $route, dataFactory, metaphone
 		console.log(rawObject, "rawObject");
 		metaphoneObject.metaphoner(rawObject.rawFlowByWord);
 		console.log("metaphoned obj", metaphoneObject);
+		rhymeMatrixObject.twoCharMatcher(metaphoneObject.singleStringMP);
+		rhymeMatrixObject.threeCharMatcher(metaphoneObject.singleStringMP);
+		console.log("rhyme matrix", rhymeMatrixObject);
 	};
 })
